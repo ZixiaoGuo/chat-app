@@ -1,10 +1,12 @@
 import { Box, Container, Grid, List, ListItem, ListItemText, Paper, Typography, Divider, FormControl, IconButton } from "@mui/material";
 import TextField from "@mui/material/TextField";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { ChatMessageDto } from "../model/ChatMessageDto.js";
 import './chat.css';
 import SendIcon from "@mui/icons-material/Send";
 const Chat = () => {
+
+    const webSocket = useRef(null);
 
     const [chatMessages, setChatMessages] = useState([
         new ChatMessageDto('John', 'hi')
@@ -17,6 +19,15 @@ const Chat = () => {
             <ListItemText primary={`${chatMessageDto.user}: ${chatMessageDto.message}`}/>
         </ListItem>
     );
+
+
+    useEffect(() => {
+        console.log("Opening Websocket");
+        webSocket.current = new WebSocket('ws://localhost:8080/chat');
+        webSocket.current.onopen
+    }, [])
+
+
     const userChangeHandler = (event) => {
         setUser(event.target.value);
     }
