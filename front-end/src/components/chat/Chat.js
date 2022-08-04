@@ -8,9 +8,7 @@ const Chat = () => {
 
     const webSocket = useRef(null);
 
-    const [chatMessages, setChatMessages] = useState([
-        new ChatMessageDto('John', 'hi')
-    ]);
+    const [chatMessages, setChatMessages] = useState([]);
 
     const [user, setUser] = useState("");
     const [message, setMessage] = useState("");
@@ -24,8 +22,28 @@ const Chat = () => {
     useEffect(() => {
         console.log("Opening Websocket");
         webSocket.current = new WebSocket('ws://localhost:8080/chat');
-        webSocket.current.onopen
-    }, [])
+        webSocket.current.onopen = (event) => {
+            console.log('open: ', event);
+        }
+        webSocket.current.onclose = (event) => {
+            console.log('close: ', event);
+        }
+        return () => {
+            console.log("closing websocket");
+            webSocket.current.close();
+        } 
+    }, []);
+
+    useEffect(()=> {
+        webSocket.current.onmessage = (event) => {
+            const chatMessageDto = JSON.parse(event.data);
+            console.log('Message ', chatMessageDto);
+            setChatMessages([...chatMessages, {
+                user: chatMessageDto.user,
+                message: chatMessageDto.message
+            }]);
+        }
+    }, [chatMessages]);
 
 
     const userChangeHandler = (event) => {
@@ -37,6 +55,10 @@ const Chat = () => {
     const sendMessage = () => {
         if(user && message) {
             console.log("sent!");
+            webSocket.current.send(
+                JSON.stringify(new ChatMessageDto(user, message))
+            );
+            setMessage("");
         }
     }
     return(
